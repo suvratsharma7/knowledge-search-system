@@ -37,3 +37,11 @@
 ## [2026-03-13] Step 07b: Score Normalization Verification
 **Prompt:** "Create backend/tests/test_normalizers.py with pytest tests for minmax, zscore, and registry logic."
 **Status:** All tests passed. Confirmed robust handling of edge cases like zero-variance scores and empty dictionaries.
+
+## [2026-03-13] Step 07c: Hybrid Search Implementation
+**Prompt:** "Create backend/app/search/hybrid.py to implement the HybridSearcher class. It must orchestrate BM25 and Vector indices, applying weighted fusion (alpha) to normalized scores."
+**Status:** Integrated lexical and semantic retrieval into a unified HybridSearcher, completing the core retrieval engine.
+
+## [2026-03-13] Step 08: Hybrid Search Orchestrator
+**Prompt:** "Create backend/app/search/hybrid.py — implement HybridSearcher to fuse BM25 and Vector results with snippet extraction."
+**Status:** Finalizing the core retrieval engine. This component bridges keyword precision and semantic depth.
