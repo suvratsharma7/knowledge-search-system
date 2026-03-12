@@ -21,3 +21,11 @@
 ## [2026-03-13] Step 05: BM25 Testing & Verification
 **Prompt:** "Create backend/tests/test_bm25.py with pytest tests for BM25Index... [full prompt text]"
 **Status:** 13/13 tests passed. [cite_start]Verified ranking, top_k limits, persistence, and edge case handling.
+
+## [2026-03-13] Step 06: Semantic Vector Indexing
+**Prompt:** "In backend/app/search/vector.py, implement a semantic search index using sentence-transformers (all-MiniLM-L6-v2) and FAISS (CPU). Include build, query, save, load, and get_all_scores methods."
+**Status:** Initializing dense retrieval. This allows the system to find documents based on meaning rather than just keyword overlap.
+
+## [2026-03-13] Step 06: Semantic Vector Search
+**Prompt:** "Create backend/app/search/vector.py (FAISS + SentenceTransformers) and backend/tests/test_vector.py with dimension validation."
+**Status:** 10/10 tests passed. Confirmed semantic ranking (AI queries) and robust metadata validation.
