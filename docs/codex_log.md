@@ -105,3 +105,7 @@
 ## [2026-03-14] Step 23: Break-Fix A — Semantic Index Mismatch
 **Prompt:** "Implement startup validation in VectorIndex.load() to check metadata against config. If dimension or model name mismatch, raise a clear ValueError with rebuild instructions. Catch this in FastAPI startup to prevent silent failures."
 **Status:** Completed. Injected defensive validation logic. Verified that changing metadata.json now triggers a descriptive ValueError instead of a silent load.
+
+## [2026-03-14] Step 24: Break-Fix B — Schema Migration & Data Integrity
+**Prompt:** "Refactor migrations.py to support both a versioned registry and a dynamic self-healing check for the user_agent column. Fix the type mismatch between string paths and sqlite3 connections and ensure row_factory is set for dictionary access."
+**Status:** Completed. Verified that the backend successfully performs a 'Double Migration' (Registry + Self-Healing). The system now auto-repairs schema drift on startup, ensuring zero data loss and persistent logging resilience.
