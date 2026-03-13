@@ -109,3 +109,12 @@
 ## [2026-03-14] Step 24: Break-Fix B — Schema Migration & Data Integrity
 **Prompt:** "Refactor migrations.py to support both a versioned registry and a dynamic self-healing check for the user_agent column. Fix the type mismatch between string paths and sqlite3 connections and ensure row_factory is set for dictionary access."
 **Status:** Completed. Verified that the backend successfully performs a 'Double Migration' (Registry + Self-Healing). The system now auto-repairs schema drift on startup, ensuring zero data loss and persistent logging resilience.
+
+## [2026-03-14] Step 25: Break-Fix C — Numerical Instability Regression
+**Prompt:** "Fix divide-by-zero bug in minmax_normalize. Restore epsilon safeguards and identical-score early returns. Implement unit tests to verify stability with identical and near-identical score distributions."
+**Status:** Completed. Hardened the normalization layer against floating-point errors. Verified metrics recovery via evaluation harness and confirmed that new unit tests catch edge cases that previously caused NaN results.
+
+## [2026-03-14] Step 26: System Architecture & Defensive Design Documentation
+**Prompt:** "Create a comprehensive architecture.md that outlines the system components, data flow, and mathematical foundations. Ensure the documentation highlights the defensive engineering wins from the Break-Fix scenarios (Schema migrations, model validation, and numerical stability)."
+**Status:** Completed. Authored a high-level technical document bridging the gap between raw code and system design. Integrated ASCII diagrams, updated SQLite schemas including the 'user_agent' migration, and documented the epsilon-stabilized normalization logic for external review.
+
