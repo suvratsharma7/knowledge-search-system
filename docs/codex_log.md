@@ -74,3 +74,7 @@
 **Prompt:** "Initialize a React + Vite frontend with TypeScript, Tailwind CSS, Recharts, and React Query. Configure API proxying and core fetch wrappers for search, telemetry, and evaluation endpoints."
 **Status:** Frontend infrastructure established. Environment is prepared for dashboard development and integration with the existing FastAPI service.
 
+## [2026-03-13] Step 16: App Shell & Navigation Implementation
+**Prompt:** "Create frontend/src/App.jsx with react-router-dom, a professional navigation bar, and 4 tabs (Search, KPI, Eval, Debug). Include an API health indicator."
+**Status:** App shell is functional. Navigation and routing are established using a layout-first approach. Integrated a live health check to monitor backend connectivity directly from the UI.
+
