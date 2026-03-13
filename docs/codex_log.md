@@ -78,3 +78,6 @@
 **Prompt:** "Create frontend/src/App.jsx with react-router-dom, a professional navigation bar, and 4 tabs (Search, KPI, Eval, Debug). Include an API health indicator."
 **Status:** App shell is functional. Navigation and routing are established using a layout-first approach. Integrated a live health check to monitor backend connectivity directly from the UI.
 
+## [2026-03-13] Step 17: Search UI Implementation
+**Prompt:** "Create SearchPage.jsx with dynamic controls for alpha, top_k, and normalization. Display results with score visualizations (BM25 vs Vector) and integrated latency tracking."
+**Status:** Search interface is live. Users can now manipulate hybrid search parameters in real-time and visualize the score composition of each result. Successfully integrated the searchDocs API wrapper.
