@@ -58,3 +58,12 @@ def get_git_commit_hash() -> str:
         )
     except (subprocess.CalledProcessError, FileNotFoundError, OSError):
         return "unknown"
+
+# --- Path Constants ---
+DATA_DIR = PROJECT_ROOT / "data"
+DATA_INDEX = DATA_DIR / "index"
+BM25_INDEX_DIR = DATA_INDEX / "bm25"
+VECTOR_INDEX_DIR = DATA_INDEX / "vector"
+
+# Add this if it's missing from your startup prompt earlier
+APP_VERSION = "0.1.0"
