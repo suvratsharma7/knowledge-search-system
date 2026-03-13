@@ -97,3 +97,7 @@
 ## [2026-03-14] Step 21: Environment Stability & Git Hygiene
 **Prompt:** "Create requirements.txt with pinned versions (FastAPI, Uvicorn, FAISS, etc.) and a comprehensive .gitignore to exclude virtual environments, node_modules, local data directories, and cache files."
 **Status:** Completed. Hardened the project for portability by pinning dependencies and ensuring local artifacts/data indices are not tracked in version control.
+
+## [2026-03-14] Step 22: Documentation & Portfolio Finalization
+**Prompt:** "Create a professional README.md with architecture diagrams, quickstart instructions, tech stack details, and API documentation to serve as the project landing page."
+**Status:** Completed. Project is now recruiter-ready with comprehensive documentation covering the hybrid search architecture, evaluation benchmarks, and automated deployment steps.
