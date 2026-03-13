@@ -85,3 +85,11 @@
 ## [2026-03-13] Step 18: KPI Dashboard Implementation
 **Prompt:** "Create KPIPage.jsx with latency panels (p50/p95), hourly request volume line charts, and query frequency tables."
 **Status:** Performance monitoring is live. Integrated Recharts for data visualization and implemented an auto-refresh mechanism (30s interval) to keep telemetry data current.
+
+## [2026-03-13] Step 19: Evaluation & Debugging Hub
+**Prompt:** "Create EvalPage.jsx with experiment tables and nDCG trend charts. Create DebugPage.jsx with filtered log tables and auto-refresh capabilities."
+**Status:** Dashboard completed. Integrated nDCG tracking to visualize Alpha parameter performance over time. Debug logs allow for granular inspection of API request life cycles and error states. Frontend Phase 3 is finalized.
+
+## [2026-03-14] Step 20: Orchestration & Automation Scripts
+**Prompt:** "Create up.sh and down.sh in the repository root to handle venv creation, dependency installation, and parallel service launch for backend and frontend. Implement port-specific process termination for 8000 and 5173."
+**Status:** Completed automation layer. Unified the development lifecycle into a single-command setup. Verified cross-platform compatibility for Python/Node orchestration and implemented atomic service shutdowns.

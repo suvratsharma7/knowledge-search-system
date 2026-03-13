@@ -1,6 +1,7 @@
 /**
  * API Service layer for Knowledge Search
  */
+const API_BASE = 'http://localhost:8000';
 
 const handleResponse = async (response) => {
     if (!response.ok) {
@@ -49,14 +50,21 @@ export const fetchExperiments = async () => {
     return handleResponse(response);
 };
 
-export const fetchLogs = async (limit = 100, severity = null, startTime = null, endTime = null) => {
-    const params = new URLSearchParams({ limit });
-    if (severity) params.append('severity', severity);
-    if (startTime) params.append('start_time', startTime);
-    if (endTime) params.append('end_time', endTime);
+export const fetchLogs = async (limit = 50, severity = null, start = null, end = null) => {
+    try {
+        const params = new URLSearchParams({ limit });
+        if (severity && severity !== 'all') params.append('severity', severity);
+        if (start) params.append('start', start);
+        if (end) params.append('end', end);
 
-    const response = await fetch(`/api/logs?${params.toString()}`);
-    return handleResponse(response);
+        const response = await fetch(`${API_BASE}/api/logs?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to fetch logs');
+        
+        return await response.json();
+    } catch (error) {
+        // This is what is catching the "API_BASE is not defined" error
+        throw new Error(error.message);
+    }
 };
 
 export const submitFeedback = async (query, docId, relevance) => {
