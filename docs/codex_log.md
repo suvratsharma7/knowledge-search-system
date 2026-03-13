@@ -93,3 +93,7 @@
 ## [2026-03-14] Step 20: Orchestration & Automation Scripts
 **Prompt:** "Create up.sh and down.sh in the repository root to handle venv creation, dependency installation, and parallel service launch for backend and frontend. Implement port-specific process termination for 8000 and 5173."
 **Status:** Completed automation layer. Unified the development lifecycle into a single-command setup. Verified cross-platform compatibility for Python/Node orchestration and implemented atomic service shutdowns.
+
+## [2026-03-14] Step 21: Environment Stability & Git Hygiene
+**Prompt:** "Create requirements.txt with pinned versions (FastAPI, Uvicorn, FAISS, etc.) and a comprehensive .gitignore to exclude virtual environments, node_modules, local data directories, and cache files."
+**Status:** Completed. Hardened the project for portability by pinning dependencies and ensuring local artifacts/data indices are not tracked in version control.
