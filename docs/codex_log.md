@@ -45,3 +45,24 @@
 ## [2026-03-13] Step 08: Hybrid Search Orchestrator
 **Prompt:** "Create backend/app/search/hybrid.py — implement HybridSearcher to fuse BM25 and Vector results with snippet extraction."
 **Status:** Finalizing the core retrieval engine. This component bridges keyword precision and semantic depth.
+
+## [2026-03-13] Step 09: Indexing CLI implementation
+**Prompt:** "Create backend/app/index.py — the indexing CLI. Runnable as: python -m app.index --input data/processed/docs.jsonl..."
+**Status:** Building the production-grade indexing pipeline to process 1,602 documents into BM25 and Vector indices.
+
+## [2026-03-13] Step 10: Telemetry & Database Setup
+**Prompt:** "Create backend/app/db/database.py — SQLite database management for query logging, feedback, and KPI tracking."
+**Status:** Implementing system observability. This enables performance monitoring (latency, volume) and user feedback loops.
+
+## [2026-03-13] Step 11: Schema Migration System
+**Prompt:** "Create backend/app/db/migrations.py to manage database schema versions and add the 'normalization' column to query_logs."
+**Status:** Successfully implemented a migration pipeline. Verified that the database schema can evolve without data loss. 7/7 database tests passed.
+
+## [2026-03-13] Step 12: Production API & Modular Routing
+**Prompt:** "Create modular FastAPI routers (Search, KPI, Eval, Logs) with Middleware for Rate Limiting and Request-ID tracking."
+**Status:** In Progress. Transitioning to a production-grade service architecture with structured logging and Prometheus-style metrics.
+
+## [2026-03-13] Step 13: Evaluation Data Generation
+**Prompt:** "Create scripts/create_eval_data.py to generate queries.jsonl and qrels.json. The script must read real doc_ids from data/processed/docs.jsonl, define 25 diverse queries covering characters, themes, and scenes from the Project Gutenberg corpus, and use keyword matching to assign relevance grades (grade 2 for >= 3 matches, grade 1 for >= 1 match). Ensure qrels.json maps query_ids to doc_ids with these grades, providing 3–10 relevant docs per query."
+[cite_start]**Status:** Successfully generated the ground-truth evaluation set[cite: 65, 886]. [cite_start]Verified that queries and relevance labels are mapped to actual document identifiers, enabling rigorous performance testing[cite: 883].
+

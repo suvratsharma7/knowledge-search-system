@@ -1,51 +1,33 @@
-"""
-Application configuration for the Knowledge Search system.
-
-All paths are defined relative to the auto-detected PROJECT_ROOT.
-"""
-
 import subprocess
 from pathlib import Path
 
-
-# ---------------------------------------------------------------------------
-# Project root: two levels up from this file  (backend/app/config.py → root)
-# ---------------------------------------------------------------------------
+# Project root: two levels up from this file (backend/app/config.py → root)
 PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent.parent
 
-# ---------------------------------------------------------------------------
-# Data directories
-# ---------------------------------------------------------------------------
-DATA_RAW: Path = PROJECT_ROOT / "data" / "raw"
-DATA_PROCESSED: Path = PROJECT_ROOT / "data" / "processed"
+# --- Data & Index Directories ---
+DATA_DIR = PROJECT_ROOT / "data"
+DATA_RAW: Path = DATA_DIR / "raw"
+DATA_PROCESSED: Path = DATA_DIR / "processed"
 
-# Index directories
-BM25_INDEX_DIR: Path = PROJECT_ROOT / "data" / "index" / "bm25"
-VECTOR_INDEX_DIR: Path = PROJECT_ROOT / "data" / "index" / "vector"
+# Consolidated Index Paths
+DATA_INDEX: Path = DATA_DIR / "index" # Base index path
+BM25_INDEX_DIR: Path = DATA_INDEX / "bm25"
+VECTOR_INDEX_DIR: Path = DATA_INDEX / "vector"
 
-# Evaluation & metrics
-EVAL_DIR: Path = PROJECT_ROOT / "data" / "eval"
-METRICS_DIR: Path = PROJECT_ROOT / "data" / "metrics"
+# Evaluation, Metrics & DB
+EVAL_DIR: Path = DATA_DIR / "eval"
+METRICS_DIR: Path = DATA_DIR / "metrics"
+DB_PATH: Path = DATA_DIR / "db" / "app.db"
 
-# Database
-DB_PATH: Path = PROJECT_ROOT / "data" / "db" / "app.db"
-
-# ---------------------------------------------------------------------------
-# Model / search defaults
-# ---------------------------------------------------------------------------
-EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
-EMBEDDING_DIM: int = 384
-DEFAULT_TOP_K: int = 10
-DEFAULT_ALPHA: float = 0.5
-
-# ---------------------------------------------------------------------------
-# App metadata
-# ---------------------------------------------------------------------------
-APP_VERSION: str = "0.1.0"
-
+# --- Model / search defaults ---
+EMBEDDING_MODEL: str = "all-MiniLM-L6-v2" # [cite: 386, 454]
+EMBEDDING_DIM: int = 384                 # [cite: 386, 455]
+DEFAULT_TOP_K: int = 10                  # [cite: 456]
+DEFAULT_ALPHA: float = 0.5               # [cite: 457]
+APP_VERSION: str = "0.1.0"               # [cite: 458]
 
 def get_git_commit_hash() -> str:
-    """Return the short git commit hash, or ``'unknown'`` on failure."""
+    """Return the short git commit hash, or 'unknown' on failure."""
     try:
         return (
             subprocess.check_output(
@@ -57,13 +39,4 @@ def get_git_commit_hash() -> str:
             .strip()
         )
     except (subprocess.CalledProcessError, FileNotFoundError, OSError):
-        return "unknown"
-
-# --- Path Constants ---
-DATA_DIR = PROJECT_ROOT / "data"
-DATA_INDEX = DATA_DIR / "index"
-BM25_INDEX_DIR = DATA_INDEX / "bm25"
-VECTOR_INDEX_DIR = DATA_INDEX / "vector"
-
-# Add this if it's missing from your startup prompt earlier
-APP_VERSION = "0.1.0"
+        return "unknown" # [cite: 460]
