@@ -4,6 +4,8 @@ from pathlib import Path
 # Project root: two levels up from this file (backend/app/config.py → root)
 PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent.parent
 
+MODEL_NAME = "all-MiniLM-L6-v2"
+
 # --- Data & Index Directories ---
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_RAW: Path = DATA_DIR / "raw"

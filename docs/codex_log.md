@@ -101,3 +101,7 @@
 ## [2026-03-14] Step 22: Documentation & Portfolio Finalization
 **Prompt:** "Create a professional README.md with architecture diagrams, quickstart instructions, tech stack details, and API documentation to serve as the project landing page."
 **Status:** Completed. Project is now recruiter-ready with comprehensive documentation covering the hybrid search architecture, evaluation benchmarks, and automated deployment steps.
+
+## [2026-03-14] Step 23: Break-Fix A — Semantic Index Mismatch
+**Prompt:** "Implement startup validation in VectorIndex.load() to check metadata against config. If dimension or model name mismatch, raise a clear ValueError with rebuild instructions. Catch this in FastAPI startup to prevent silent failures."
+**Status:** Completed. Injected defensive validation logic. Verified that changing metadata.json now triggers a descriptive ValueError instead of a silent load.
