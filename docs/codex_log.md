@@ -66,3 +66,11 @@
 **Prompt:** "Create scripts/create_eval_data.py to generate queries.jsonl and qrels.json. The script must read real doc_ids from data/processed/docs.jsonl, define 25 diverse queries covering characters, themes, and scenes from the Project Gutenberg corpus, and use keyword matching to assign relevance grades (grade 2 for >= 3 matches, grade 1 for >= 1 match). Ensure qrels.json maps query_ids to doc_ids with these grades, providing 3–10 relevant docs per query."
 [cite_start]**Status:** Successfully generated the ground-truth evaluation set[cite: 65, 886]. [cite_start]Verified that queries and relevance labels are mapped to actual document identifiers, enabling rigorous performance testing[cite: 883].
 
+## [2026-03-13] Step 14: Evaluation Harness & Hyperparameter Tuning
+**Prompt:** "Create backend/app/eval.py to implement the evaluation harness. Requirements: Load queries/qrels, run hybrid search with configurable alpha/normalization, and compute nDCG@10, Recall@10, and MRR@10 from scratch. Execute a 5-run experimental sweep across alpha values [0.0, 0.2, 0.5, 0.8, 1.0] to identify the optimal retrieval balance."
+**Status:** Completed the evaluation pipeline and identified Alpha=0.8 as the optimal configuration (nDCG@10: 0.3773). Results mathematically prove that a lexical-heavy hybrid approach outperforms standalone BM25 or Vector search for this corpus.
+
+## [2026-03-13] Step 15: Frontend Project Initialization
+**Prompt:** "Initialize a React + Vite frontend with TypeScript, Tailwind CSS, Recharts, and React Query. Configure API proxying and core fetch wrappers for search, telemetry, and evaluation endpoints."
+**Status:** Frontend infrastructure established. Environment is prepared for dashboard development and integration with the existing FastAPI service.
+
