@@ -4,23 +4,27 @@ import { searchDocs } from '../api';
 /**
  * Score Bar Component for visualizing BM25, Vector, and Hybrid scores.
  */
-function ScoreBar({ label, value, colorClass }) {
-    // Normalize value for visualization (assuming it's roughly 0-1)
-    const width = Math.min(Math.max(value * 100, 0), 100);
+// Find the ScoreBar function and update it to this:
+const ScoreBar = ({ label, score, colorClass }) => {
+  // If score is null or undefined, default to 0
+  const safeScore = score || 0; 
+  const percentage = Math.min(Math.max(safeScore * 100, 0), 100);
 
-    return (
-        <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-semibold text-gray-500 uppercase w-12">{label}</span>
-            <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                <div
-                    className={`h-full ${colorClass} transition-all duration-500 ease-out`}
-                    style={{ width: `${width}%` }}
-                />
-            </div>
-            <span className="text-[10px] font-mono text-gray-400 w-8 text-right">{value.toFixed(3)}</span>
-        </div>
-    );
-}
+  return (
+    <div className="flex items-center gap-2 mb-1">
+      <span className="text-[10px] w-12 text-gray-400 uppercase font-mono">{label}</span>
+      <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+        <div 
+          className={`h-full ${colorClass}`} 
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+      <span className="text-[10px] font-mono text-gray-500">
+        {safeScore.toFixed(3)}
+      </span>
+    </div>
+  );
+};
 
 /**
  * Parses **bold** markers into <b> tags.
