@@ -118,3 +118,6 @@
 **Prompt:** "Create a comprehensive architecture.md that outlines the system components, data flow, and mathematical foundations. Ensure the documentation highlights the defensive engineering wins from the Break-Fix scenarios (Schema migrations, model validation, and numerical stability)."
 **Status:** Completed. Authored a high-level technical document bridging the gap between raw code and system design. Integrated ASCII diagrams, updated SQLite schemas including the 'user_agent' migration, and documented the epsilon-stabilized normalization logic for external review.
 
+## [2026-03-14] Step 27: Engineering Decision Log
+**Prompt:** "Document the technical trade-offs of the project in a decision_log.md. Justify choices like SQLite, FAISS, and MiniLM in the context of CPU-only constraints and minimal setup time."
+**Status:** Completed. Authored a strategic document detailing the 'Why' behind the tech stack. This provides clear rationale for recruiters on why lightweight, local-first libraries were prioritized over enterprise-heavy alternatives like Elasticsearch or PostgreSQL.
