@@ -8,11 +8,14 @@ No external dependencies — stdlib only.
 from __future__ import annotations
 
 import sqlite3
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
 from app.config import DB_PATH
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Path helpers
@@ -54,6 +57,7 @@ CREATE TABLE IF NOT EXISTS query_logs (
     alpha        REAL    NOT NULL,
     result_count INTEGER NOT NULL,
     error        TEXT,
+    user_agent   TEXT    DEFAULT 'unknown',
     timestamp    TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -73,11 +77,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 
 
 def init_db() -> None:
-    """Create the SQLite database and all tables if they don't exist.
-
-    Inserts an initial ``schema_version`` row (version 1) when the table is
-    first created and is still empty.
-    """
+    """Create the SQLite database and all tables if they don't exist."""
     conn = get_connection()
     try:
         conn.executescript(_SCHEMA_SQL)
@@ -101,19 +101,29 @@ def log_query(
     alpha: float,
     result_count: int,
     error: Optional[str] = None,
+    user_agent: str = "unknown",
 ) -> None:
-    """Insert a row into ``query_logs``."""
+    """Insert a row into ``query_logs``.
+    
+    Catches OperationalErrors to prevent API crashes if schema migrations
+    or database locks are in progress.
+    """
     conn = get_connection()
     try:
         conn.execute(
             """
             INSERT INTO query_logs
-                (request_id, query, latency_ms, top_k, alpha, result_count, error)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (request_id, query, latency_ms, top_k, alpha, result_count, error, user_agent)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (request_id, query, latency_ms, top_k, alpha, result_count, error),
+            (request_id, query, latency_ms, top_k, alpha, result_count, error, user_agent),
         )
         conn.commit()
+    except sqlite3.OperationalError as e:
+        # Scenario B: Log warning instead of crashing the API response
+        logger.warning(f"Database logging failed (OperationalError): {e}. Search result still returned to user.")
+    except Exception as e:
+        logger.error(f"Unexpected database error during log_query: {e}")
     finally:
         conn.close()
 
@@ -127,6 +137,8 @@ def log_feedback(query: str, doc_id: str, relevance: int) -> None:
             (query, doc_id, relevance),
         )
         conn.commit()
+    except sqlite3.Error as e:
+        logger.error(f"Failed to log feedback: {e}")
     finally:
         conn.close()
 
@@ -142,16 +154,6 @@ def get_query_logs(
     start_time: Optional[str] = None,
     end_time: Optional[str] = None,
 ) -> list[dict[str, Any]]:
-    """Return recent query log rows, optionally filtered.
-
-    Args:
-        limit:      Maximum rows to return.
-        offset:     Pagination offset.
-        severity:   ``"error"`` → only rows where ``error IS NOT NULL``;
-                    ``"info"`` → only rows where ``error IS NULL``.
-        start_time: ISO datetime lower bound (inclusive).
-        end_time:   ISO datetime upper bound (inclusive).
-    """
     clauses: list[str] = []
     params: list[Any] = []
 
@@ -189,70 +191,35 @@ def get_query_logs(
 # ---------------------------------------------------------------------------
 
 def get_kpi_data() -> dict[str, Any]:
-    """Return a dictionary of key performance indicators.
-
-    Keys:
-        total_queries, p50_latency, p95_latency, top_queries,
-        zero_result_queries, volume_over_time.
-    """
     conn = get_connection()
     try:
-        # Total queries
-        total: int = conn.execute(
-            "SELECT COUNT(*) AS cnt FROM query_logs"
-        ).fetchone()["cnt"]
+        total: int = conn.execute("SELECT COUNT(*) AS cnt FROM query_logs").fetchone()["cnt"]
 
-        # Percentile latencies (fetch all latencies, compute in Python)
-        latency_rows = conn.execute(
-            "SELECT latency_ms FROM query_logs ORDER BY latency_ms"
-        ).fetchall()
+        latency_rows = conn.execute("SELECT latency_ms FROM query_logs ORDER BY latency_ms").fetchall()
         latencies: list[float] = [r["latency_ms"] for r in latency_rows]
 
         p50 = _percentile(latencies, 50.0)
         p95 = _percentile(latencies, 95.0)
 
-        # Top 10 most frequent queries
         top_q_rows = conn.execute(
-            """
-            SELECT query, COUNT(*) AS cnt
-            FROM query_logs
-            GROUP BY query
-            ORDER BY cnt DESC
-            LIMIT 10
-            """
+            "SELECT query, COUNT(*) AS cnt FROM query_logs GROUP BY query ORDER BY cnt DESC LIMIT 10"
         ).fetchall()
-        top_queries: list[tuple[str, int]] = [
-            (r["query"], r["cnt"]) for r in top_q_rows
-        ]
+        top_queries = [(r["query"], r["cnt"]) for r in top_q_rows]
 
-        # Zero-result queries
         zero_rows = conn.execute(
-            """
-            SELECT query, COUNT(*) AS cnt
-            FROM query_logs
-            WHERE result_count = 0
-            GROUP BY query
-            ORDER BY cnt DESC
-            """
+            "SELECT query, COUNT(*) AS cnt FROM query_logs WHERE result_count = 0 GROUP BY query ORDER BY cnt DESC"
         ).fetchall()
-        zero_result_queries: list[tuple[str, int]] = [
-            (r["query"], r["cnt"]) for r in zero_rows
-        ]
+        zero_result_queries = [(r["query"], r["cnt"]) for r in zero_rows]
 
-        # Volume over time (last 24h, grouped by hour)
         vol_rows = conn.execute(
             """
-            SELECT strftime('%Y-%m-%d %H:00', timestamp) AS date_hour,
-                   COUNT(*) AS cnt
+            SELECT strftime('%Y-%m-%d %H:00', timestamp) AS date_hour, COUNT(*) AS cnt
             FROM query_logs
             WHERE timestamp >= datetime('now', '-24 hours')
-            GROUP BY date_hour
-            ORDER BY date_hour
+            GROUP BY date_hour ORDER BY date_hour
             """
         ).fetchall()
-        volume_over_time: list[tuple[str, int]] = [
-            (r["date_hour"], r["cnt"]) for r in vol_rows
-        ]
+        volume_over_time = [(r["date_hour"], r["cnt"]) for r in vol_rows]
 
         return {
             "total_queries": total,
@@ -266,15 +233,7 @@ def get_kpi_data() -> dict[str, Any]:
         conn.close()
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
 def _percentile(sorted_values: list[float], pct: float) -> float:
-    """Return the *pct*-th percentile from an already-sorted list.
-
-    Returns ``0.0`` when the list is empty.
-    """
     if not sorted_values:
         return 0.0
     n = len(sorted_values)

@@ -9,34 +9,40 @@ from __future__ import annotations
 
 import statistics
 from collections.abc import Callable
-
+from typing import Dict
 
 # ---------------------------------------------------------------------------
 # Normalizers
 # ---------------------------------------------------------------------------
 
-def minmax_normalize(scores: dict[str, float]) -> dict[str, float]:
-    """Scale every value in *scores* to the ``[0, 1]`` range.
-
-    ``norm = (score - min) / (max - min + 1e-10)``
-
-    * If all scores are identical → all values become ``0.0``.
-    * Empty dict → empty dict.
+def minmax_normalize(scores: Dict[str, float]) -> Dict[str, float]:
+    """
+    Normalizes scores to [0, 1] range. 
+    
+    Includes safeguards:
+    1. Returns zeros if all scores are identical (prevents div by zero).
+    2. Uses an epsilon (1e-10) in the denominator for numerical stability.
+    3. Handles empty input gracefully.
     """
     if not scores:
         return {}
 
     vals = list(scores.values())
-    lo = min(vals)
-    hi = max(vals)
-    span = hi - lo
+    min_score = min(vals)
+    max_score = max(vals)
+    
+    # Safeguard 1: All scores are identical
+    if max_score == min_score:
+        return {doc_id: 0.0 for doc_id in scores.keys()}
 
-    # All identical → return 0.0 for every key.
-    if span == 0.0:
-        return {k: 0.0 for k in scores}
-
-    denom = span + 1e-10
-    return {k: (v - lo) / denom for k, v in scores.items()}
+    # Safeguard 2: Use epsilon to prevent floating-point division errors
+    epsilon = 1e-10
+    denominator = max_score - min_score + epsilon
+    
+    return {
+        doc_id: (score - min_score) / denominator 
+        for doc_id, score in scores.items()
+    }
 
 
 def zscore_normalize(scores: dict[str, float]) -> dict[str, float]:
@@ -90,3 +96,4 @@ def get_normalizer(
         raise ValueError(
             f"Unknown normalizer {name!r}. Choose from: {valid}"
         ) from None
+    
