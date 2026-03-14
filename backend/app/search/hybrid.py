@@ -1,22 +1,15 @@
 """
 Hybrid search component for the Knowledge Search system.
-
-Combines BM25 (lexical) and dense-vector (semantic) scores into a single
-ranked result list using configurable weighting and normalization.
 """
 
 from __future__ import annotations
 from typing import Any
 
 from app.search.bm25 import BM25Index
-from app.search.normalizers import get_normalizer
 from app.search.vector import VectorIndex
 from app.utils.preprocessing import extract_snippets, tokenize
 
-
 class HybridSearcher:
-    """Merges :class:`BM25Index` and :class:`VectorIndex` results."""
-
     def __init__(
         self,
         bm25_index: BM25Index,
@@ -27,6 +20,15 @@ class HybridSearcher:
         self._vector = vector_index
         self._doc_store = doc_store
 
+    def _normalize_dict(self, d: dict[str, float]) -> dict[str, float]:
+        """Internal helper to force scores into a 0.0 - 1.0 range."""
+        if not d: return {}
+        min_val = min(d.values())
+        max_val = max(d.values())
+        if max_val == min_val:
+            return {k: 1.0 for k in d.keys()}
+        return {k: (v - min_val) / (max_val - min_val) for k, v in d.items()}
+
     def search(
         self,
         query: str,
@@ -34,79 +36,54 @@ class HybridSearcher:
         alpha: float = 0.5,
         normalization: str = "minmax",
     ) -> list[dict[str, Any]]:
-        if not (0.0 <= alpha <= 1.0):
-            raise ValueError(f"alpha must be in [0, 1], got {alpha}")
-
-        if not query.strip():
-            return []
+        if not query.strip(): return []
 
         # 1. Get RAW scores
-        bm25_raw: dict[str, float] = self._bm25.get_all_scores(query)
-        vector_raw: dict[str, float] = self._vector.get_all_scores(query)
+        bm25_raw = self._bm25.get_all_scores(query)
+        vector_raw = self._vector.get_all_scores(query)
 
-        # --- THE FIX: COSINE SIMILARITY THRESHOLDING ---
-        # Your debug output showed distances around 0.21. 
-        # In Cosine Similarity, we want values GREATER than a threshold.
-        # Anything below 0.45 is usually semantically unrelated noise.
-        valid_vector_raw = {
-            doc_id: sim for doc_id, sim in vector_raw.items() if sim > 0.45
-        }
+        # 2. THE GIBBERISH GUARD (Strict 0.35)
+        # We only consider semantic hits that are actually meaningful.
+        valid_vector = {k: v for k, v in vector_raw.items() if v >= 0.35}
 
-        # If BM25 found nothing AND Vector similarity is too low, return empty.
-        if not bm25_raw and not valid_vector_raw:
+        if not bm25_raw and not valid_vector:
             return []
-        # ----------------------------------------------
 
-        # 2. Normalise only the valid data
-        normalize = get_normalizer(normalization)
-        bm25_norm: dict[str, float] = normalize(bm25_raw)
-        vector_norm: dict[str, float] = normalize(valid_vector_raw)
+        # 3. INTERNAL MIN-MAX NORMALIZATION (The Fix)
+        # We squash BM25 (0-20) and Vector (0-1) into a shared 0-1 scale.
+        def normalize(scores):
+            if not scores: return {}
+            low, high = min(scores.values()), max(scores.values())
+            if high == low: return {k: 1.0 for k in scores}
+            return {k: (v - low) / (high - low) for k, v in scores.items()}
 
-        # 3. Combine scores
-        all_doc_ids: set[str] = set(bm25_norm) | set(vector_norm)
-        combined: list[tuple[str, float]] = []
-        for doc_id in all_doc_ids:
-            b = bm25_norm.get(doc_id, 0.0)
-            v = vector_norm.get(doc_id, 0.0)
-            hybrid = alpha * b + (1.0 - alpha) * v
-            
-            # Baseline hybrid check to ensure quality
-            if hybrid >= 0.05:
-                combined.append((doc_id, hybrid))
+        b_norm = normalize(bm25_raw)
+        v_norm = normalize(valid_vector)
 
-        # 4. Sort and slice
+        # 4. COMBINE (The Fair Handshake)
+        all_ids = set(b_norm) | set(v_norm)
+        combined = []
+        for doc_id in all_ids:
+            # Now Alpha 0.1 actually means 90% Vector power
+            h_score = (alpha * b_norm.get(doc_id, 0)) + ((1 - alpha) * v_norm.get(doc_id, 0))
+            if h_score > 0:
+                combined.append((doc_id, h_score))
+
         combined.sort(key=lambda x: x[1], reverse=True)
-        top_results = combined[:top_k]
-
-        # 5. Build rich results
-        query_tokens: list[str] = tokenize(query)
-        results: list[dict[str, Any]] = []
-        for doc_id, hybrid_score in top_results:
+        
+        # 5. Build Result List
+        results = []
+        q_tokens = tokenize(query)
+        for doc_id, final_score in combined[:top_k]:
             doc = self._doc_store.get(doc_id, {})
-            title = doc.get("title", doc_id)
-            text = doc.get("text", "")
-            snippet = extract_snippets(text, query_tokens) if text else ""
-
             results.append({
                 "doc_id": doc_id,
-                "title": title,
-                "snippet": snippet,
-                "bm25_score": bm25_raw.get(doc_id, 0.0),
-                "vector_score": vector_raw.get(doc_id, 0.0),
-                "hybrid_score": hybrid_score,
+                "title": doc.get("title", doc_id),
+                "snippet": extract_snippets(doc.get("text", ""), q_tokens),
+                "bm25_score": bm25_raw.get(doc_id, 0),
+                "vector_score": vector_raw.get(doc_id, 0),
+                "hybrid_score": final_score,
             })
-
-        # --- DEBUG OUTPUT ---
-        print(f"--- DEBUG SEARCH ---")
-        print(f"Query: {query}")
-        print(f"Raw Vector Distances (Top 3): {list(vector_raw.values())[:3]}")
-        print(f"Results after threshold: {len(results)}")
-
         return results
-
-    def __repr__(self) -> str:
-        return (
-            f"<HybridSearcher bm25={self._bm25.doc_count} docs, "
-            f"vector={self._vector.doc_count} docs, "
-            f"store={len(self._doc_store)} docs>"
-        )
+    
+    

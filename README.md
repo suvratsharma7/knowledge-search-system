@@ -1,3 +1,10 @@
+# 🔍 Knowledge Search System
+
+> **[🎥 Watch the 8-Minute Technical Deep Dive](https://drive.google.com/file/d/1nBYhjieR6yNy-RXRKCqzq2qCPkZ_aRP6/view?usp=sharing)**
+An enterprise-grade hybrid search ecosystem combining Lexical (BM25) and Semantic (FAISS) retrieval. 
+This walkthrough covers the hybrid engine architecture, real-time KPI monitoring, 
+and automated search evaluation frameworks.
+
 # Knowledge Search + KPI Dashboard
 Enterprise-grade semantic discovery engine with real-time performance analytics and hybrid search intelligence.
 
@@ -20,8 +27,8 @@ The **Frontend** (Vite/React) communicates with a **FastAPI** backend that orche
 
 ## 1-Minute Quickstart
 ```bash
-git clone <repo-url>
-cd knowledge-search-project
+git clone [https://github.com/suvratsharma7/knowledge-search-system.git](https://github.com/suvratsharma7/knowledge-search-system.git)
+cd knowledge-search-system
 ./up.sh
 ```
 Once the services start, the dashboard will be available at:

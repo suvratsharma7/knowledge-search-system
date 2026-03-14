@@ -21,20 +21,31 @@ from app.config import BM25_INDEX_DIR, VECTOR_INDEX_DIR, DATA_INDEX, DB_PATH
 app = FastAPI(title="Knowledge Search System")
 
 # 3. Add Middlewares
-app.add_middleware(RequestLoggingMiddleware)
+# CRITICAL: We explicitly list the frontend port in case "*" is being flaky
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "*" 
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+app.add_middleware(RequestLoggingMiddleware)
 
 # 4. Include All Modular Routers
 app.include_router(search_router)
 app.include_router(kpi_router)
 app.include_router(eval_router)
 app.include_router(log_router)
+
+# Added a root health check so http://localhost:8000 doesn't show "Not Found"
+@app.get("/")
+async def root():
+    return {"status": "online", "message": "Knowledge Search API is reaching for the stars"}
 
 # 5. Startup Logic with Self-Healing Migrations
 @app.on_event("startup")
@@ -45,10 +56,9 @@ async def startup_event():
     try:
         init_db()  # Ensure basic tables exist
         print("🛠️ Verifying database schema integrity...")
-        run_migrations(str(DB_PATH)) # Run the reconstruction if user_agent is missing
+        run_migrations(str(DB_PATH)) 
     except Exception as db_err:
         print(f"⚠️ Database initialization/migration warning: {db_err}")
-    # -----------------------------
 
     try:
         bm25 = BM25Index.load(BM25_INDEX_DIR)
@@ -59,12 +69,11 @@ async def startup_event():
             
         app.state.searcher = HybridSearcher(bm25, vector, doc_store)
         print("✅ HybridSearcher ready with indices loaded.")
-        print("📊 Analytics and Log routes active.")
     except Exception as e:
         print(f"❌ Error loading indices: {e}")
         app.state.searcher = None
 
 if __name__ == "__main__":
+    # Using the module string "app.__main__:app" allows the reloader to work properly
     uvicorn.run("app.__main__:app", host="0.0.0.0", port=8000, reload=True)
-
     
